@@ -34,36 +34,38 @@ export class App extends Component {
         isLoading: true,
       });
 
-      imagesAPI
-        .fetchImages(query, page)
-        .then(images => {
-          if (images.hits.length < 1) {
-            return toast.info(
-              `😅 Unfortunately the world is not that creative yet, so we did not find pictures on request ${query}. Try something less eccentric and we'll make you happy!`
-            );
-          }
-          if (prevState.query !== query || prevState.page !== page) {
-            this.setState({
-              query,
-              images: [...prevState.images, ...images.hits],
-              page,
-              totalImg: images.totalHits,
-            });
-          }
-        })
-        .catch(error => {
-          this.setState({
-            error,
-          });
-        })
-        .finally(() => {
-          this.setState({
-            isLoading: false,
-          });
-        });
+      this.getPictures(query, page);
     }
   }
 
+  getPictures = (query, page) => {
+    imagesAPI
+      .fetchImages(query, page)
+      .then(images => {
+        if (images.hits.length < 1) {
+          return toast.info(
+            `😅 Unfortunately the world is not that creative yet, so we did not find pictures on request ${query}. Try something less eccentric and we'll make you happy!`
+          );
+        }
+
+        this.setState(prevState => ({
+          query,
+          images: [...prevState.images, ...images.hits],
+          page,
+          totalImg: images.totalHits,
+        }));
+      })
+      .catch(error => {
+        this.setState({
+          error,
+        });
+      })
+      .finally(() => {
+        this.setState({
+          isLoading: false,
+        });
+      });
+  };
   handleSubmit = e => {
     e.preventDefault();
 
@@ -92,21 +94,24 @@ export class App extends Component {
     }));
   };
   render() {
-    const { isLoading, images, error } = this.state;
-
+    const { isLoading, images, error, totalImg } = this.state;
+    console.log(images.length);
     return (
       <Container>
-        <SearchBar onSubmit={this.handleSubmit} />
+        <SearchBar onSubmit={this.handleSubmit} onChange={this.handleChange} />
         {error && (
           <ErrorImage
             src={ErrorImg}
             alt="Oops, something went wrong. Please reload the page"
           />
         )}
+
         <ImageGallery images={images} />
         {isLoading && <Loader />}
         <ToastContainer />
-        {images.length > 0 && <LoadButton onClick={this.handleLoadMore} />}
+        {images.length > 0 && totalImg > images.length && (
+          <LoadButton onClick={this.handleLoadMore} />
+        )}
         <GlobalStyle />
       </Container>
     );
