@@ -77,7 +77,7 @@ export const App = () => {
   };
 
   const handleLoadMore = () => {
-    setPage(prevState => prevState + 1);
+    setPage(prevPage => prevPage + 1);
   };
   return (
     <Container>
