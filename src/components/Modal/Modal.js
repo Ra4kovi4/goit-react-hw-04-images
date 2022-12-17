@@ -1,42 +1,37 @@
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Backdrop, ModalWindow } from './Modal.styled';
+import PropTypes from 'prop-types';
 const modalRoot = document.querySelector('#modal-root');
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handlerCloseKeydown);
-  }
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handlerCloseKeydown);
-  }
-  handlerCloseKeydown = e => {
-    if (e.code === 'Escape') {
-      console.log('Нажали Escape');
-
-      this.props.onCloseModal();
-    }
-  };
-  handleBackdropClose = e => {
+export const Modal = ({ photo, tags, onCloseModal }) => {
+  const handleBackdropClose = e => {
     if (e.target === e.currentTarget) {
-      console.log('нажали backdrop');
-
-      this.props.onCloseModal();
+      onCloseModal();
     }
   };
-  render() {
-    return createPortal(
-      <Backdrop onClick={this.handleBackdropClose}>
-        <ModalWindow>
-          <img
-            src={this.props.photo}
-            alt={this.props.tags}
-            width="800"
-            height="600"
-          />
-        </ModalWindow>
-      </Backdrop>,
-      modalRoot
-    );
-  }
-}
+  useEffect(() => {
+    const handlerCloseKeydown = e => {
+      if (e.code === 'Escape') {
+        onCloseModal();
+      }
+    };
+    window.addEventListener('keydown', handlerCloseKeydown);
+    return () => window.removeEventListener('keydown', handlerCloseKeydown);
+  }, [onCloseModal]);
+
+  return createPortal(
+    <Backdrop onClick={handleBackdropClose}>
+      <ModalWindow>
+        <img src={photo} alt={tags} width="800" height="600" />
+      </ModalWindow>
+    </Backdrop>,
+    modalRoot
+  );
+};
+
+Modal.propTypes = {
+  tags: PropTypes.string.isRequired,
+  photo: PropTypes.string.isRequired,
+  onCloseModal: PropTypes.func.isRequired,
+};
